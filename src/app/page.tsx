@@ -19,11 +19,6 @@ const perks = [
     icon: Leaf,
     description: "We plant a tree for every purchase.",
   },
-  {
-    name: "Secure Payments",
-    icon: ArrowDownToLine,
-    description: "We use Stripe to process payments.",
-  },
 ];
 
 export default function Home() {
