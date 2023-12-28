@@ -1,60 +1,60 @@
 "use client";
-
-import { Icons } from "../../components/icons";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-// import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  TSchema,
+  schema,
+} from "../../../lib/validators/account-credentials-validator";
+import { trpc } from "@/trpc/client";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { useForm } from "react-hook-form";
-
-// import {
-//   AuthCredentialsValidator,
-//   TAuthCredentialsValidator,
-// } from "@/lib/validators/account-credentials-validator";
-// import { trpc } from "@/trpc/client";
 import { toast } from "sonner";
 import { ZodError } from "zod";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { Icons } from "../../components/icons";
 
 const Page = () => {
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<any>({
-    // resolver: zodResolver(any),
+  } = useForm<TSchema>({
+    resolver: zodResolver(schema),
   });
 
   const router = useRouter();
 
-  //   const { mutate, isLoading } = trpc.auth.createPayloadUser.useMutation({
-  //     onError: (err: any) => {
-  //       if (err.data?.code === "CONFLICT") {
-  //         toast.error("This email is already in use. Sign in instead?");
+  const { mutate, isLoading } = trpc.auth.createPayloadUser.useMutation({
+    onError: (err: any) => {
+      if (err.data?.code === "CONFLICT") {
+        toast.error("This email is already in use. Sign in instead?");
 
-  //         return;
-  //       }
+        return;
+      }
+      if (err instanceof ZodError) {
+        toast.error(err.issues[0].message);
 
-  //       if (err instanceof ZodError) {
-  //         toast.error(err.issues[0].message);
+        return;
+      }
 
-  //         return;
-  //       }
+      toast.error("Something went wrong. Please try again.");
+    },
+    onSuccess: ({ sentToEmail }: { sentToEmail: any }) => {
+      toast.success(`Verification email sent to ${sentToEmail}.`);
+      router.push("/verify-email?to=" + sentToEmail);
+    },
+  });
 
-  //       toast.error("Something went wrong. Please try again.");
-  //     },
-  //     onSuccess: ({ sentToEmail }: { sentToEmail: any }) => {
-  //       toast.success(`Verification email sent to ${sentToEmail}.`);
-  //       router.push("/verify-email?to=" + sentToEmail);
-  //     },
-  //   });
-
-  const onSubmit = ({ email, password }: any) => {
-    // mutate({ email, password });
+  const onSubmit = ({ email, password }: TSchema) => {
+    mutate({ email, password });
+    console.log(email, password);
   };
+
+  // console.log(data);
 
   return (
     <>
@@ -92,7 +92,7 @@ const Page = () => {
                   />
                   {errors?.email && (
                     <p className="text-sm text-red-500">
-                      {/* {errors.email.message} */}
+                      {errors.email.message}
                     </p>
                   )}
                 </div>
@@ -109,7 +109,7 @@ const Page = () => {
                   />
                   {errors?.password && (
                     <p className="text-sm text-red-500">
-                      {/* {errors.password.message} */}
+                      {errors.password.message}
                     </p>
                   )}
                 </div>

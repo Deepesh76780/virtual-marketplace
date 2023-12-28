@@ -6,9 +6,19 @@ import nextBuild from "next/dist/build";
 import path from "path";
 import { PayloadRequest } from "payload/types";
 import { parse } from "url";
+import * as trpcExpress from "@trpc/server/adapters/express";
+import { appRouter } from "./trpc";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
+
+const createContext = ({
+  req,
+  res,
+}: trpcExpress.CreateExpressContextOptions) => ({
+  req,
+  res,
+});
 
 export type WebhookRequest = IncomingMessage & {
   rawBody: Buffer;
@@ -41,7 +51,6 @@ const start = async () => {
 
   cartRouter.get("/", (req, res) => {
     const request = req as PayloadRequest;
-
     if (!request.user) return res.redirect("/sign-in?origin=cart");
 
     const parsedUrl = parse(req.url, true);
@@ -50,7 +59,13 @@ const start = async () => {
     return nextApp.render(req, res, "/cart", query);
   });
 
-  app.use("/cart", cartRouter);
+  app.use(
+    "/api/trpc",
+    trpcExpress.createExpressMiddleware({
+      router: appRouter,
+      createContext,
+    })
+  );
 
   app.use((req, res) => nextHandler(req, res));
 
