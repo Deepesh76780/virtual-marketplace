@@ -10,8 +10,6 @@ export const AuthRouter = router({
     .mutation(async ({ input }) => {
       const { email, password } = input;
       const payload = await getPayloadClient();
-
-      // check if user already exists
       const { docs: users } = await payload.find({
         collection: "users",
         where: {
@@ -52,25 +50,25 @@ export const AuthRouter = router({
       return { success: true };
     }),
 
-  // signIn: publicProcedure.input(schema).mutation(async ({ input, ctx }) => {
-  //   const { email, password } = input;
-  //   const { res } = ctx;
+  signIn: publicProcedure.input(schema).mutation(async ({ input, ctx }) => {
+    const { email, password } = input;
+    const { res } = ctx;
 
-  //   const payload = await getPayloadClient();
+    const payload = await getPayloadClient();
 
-  //   try {
-  //     await payload.login({
-  //       collection: "users",
-  //       data: {
-  //         email,
-  //         password,
-  //       },
-  //       res,
-  //     });
+    try {
+      await payload.login({
+        collection: "users",
+        data: {
+          email,
+          password,
+        },
+        res,
+      });
 
-  //     return { success: true };
-  //   } catch (err) {
-  //     throw new TRPCError({ code: "UNAUTHORIZED" });
-  //   }
-  // }),
+      return { success: true };
+    } catch (err) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+  }),
 });

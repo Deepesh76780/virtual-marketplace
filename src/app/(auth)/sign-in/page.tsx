@@ -16,8 +16,22 @@ import { ZodError } from "zod";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { Icons } from "../../components/icons";
+import { useSearchParams } from "next/navigation";
 
 const Page = () => {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const isSeller = searchParams.get("as") === "seller";
+  const origin = searchParams.get("origin");
+
+  const continueAsSeller = () => {
+    router.push("?as=seller");
+  };
+
+  const continueAsBuyer = () => {
+    router.replace("/sign-in", undefined);
+  };
+
   const {
     register,
     handleSubmit,
@@ -26,32 +40,32 @@ const Page = () => {
     resolver: zodResolver(schema),
   });
 
-  const router = useRouter();
+  const { mutate: signIn, isLoading } = trpc.auth.signIn.useMutation({
+    onSuccess: () => {
+      toast.success(`signed in successfully!`);
+      router.refresh();
 
-  const { mutate, isLoading } = trpc.auth.createPayloadUser.useMutation({
-    onError: (err: any) => {
-      if (err.data?.code === "CONFLICT") {
-        toast.error("This email is already in use. Sign in instead?");
-
-        return;
-      }
-      if (err instanceof ZodError) {
-        toast.error(err.issues[0].message);
-
-        return;
+      if (origin) {
+        router.push(`/${origin}`);
       }
 
-      toast.error("Something went wrong. Please try again.");
+      if (isSeller) {
+        router.push("/sell");
+        return;
+      }
+
+      router.push("/");
     },
-    onSuccess: ({ sentToEmail }: { sentToEmail: any }) => {
-      toast.success(`Verification email sent to ${sentToEmail}.`);
-      router.push("/verify-email?to=" + sentToEmail);
+    onError: (err) => {
+      if (err.data?.code === "UNAUTHORIZED") {
+        toast.error("Invalid email or password. Please try again");
+        return;
+      }
     },
   });
 
   const onSubmit = ({ email, password }: TSchema) => {
-    mutate({ email, password });
-    console.log(email, password);
+    signIn({ email, password });
   };
 
   return (
@@ -61,7 +75,7 @@ const Page = () => {
           <div className="flex flex-col items-center space-y-2 text-center">
             <Icons.logo className="h-20 w-20" />
             <h1 className="text-2xl font-semibold tracking-tight">
-              Create an account
+              Sign in to your account
             </h1>
 
             <Link
@@ -69,9 +83,9 @@ const Page = () => {
                 variant: "link",
                 className: "gap-1.5",
               })}
-              href="/sign-in"
+              href="/sign-up"
             >
-              Already have an account? Sign-in
+              Don&apos;t have an account ? Sign-up
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -110,10 +124,39 @@ const Page = () => {
                     </p>
                   )}
                 </div>
-
-                <Button>Sign up</Button>
+                <Button>Sign in</Button>
               </div>
             </form>
+            <div className="relative">
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 flex items-center"
+              >
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  or
+                </span>
+              </div>
+            </div>
+            {isSeller ? (
+              <Button
+                onClick={continueAsBuyer}
+                variant="outline"
+                disabled={isLoading}
+              >
+                Continue as customer
+              </Button>
+            ) : (
+              <Button
+                onClick={continueAsSeller}
+                variant="outline"
+                disabled={isLoading}
+              >
+                Continue as seller
+              </Button>
+            )}
           </div>
         </div>
       </div>
