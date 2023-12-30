@@ -8,7 +8,7 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "digitalhippo-production.up.railway.app",
+        hostname: "main--ornate-hummingbird-4f71c0.netlify.app",
       },
     ],
   },
