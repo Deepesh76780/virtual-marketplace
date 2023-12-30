@@ -36,7 +36,7 @@ const yourOwnAndPurchased: Access = async ({ req }) => {
 
   const purchasedProductFieldIds = orders
     .map((order) => {
-      return order.product.map((prod) => {
+      return order.products.map((prod) => {
         if (typeof prod === "string")
           return req.payload.logger.error("prod is a string");
 

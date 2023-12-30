@@ -3,9 +3,11 @@ import { AuthRouter } from "./authRouter";
 import { z } from "zod";
 import { queryValidator } from "../lib/validators/query_validator";
 import { getPayloadClient } from "../get-payload";
+import { paymentRouter } from "./paymentRouter";
 
 export const appRouter = router({
   auth: AuthRouter,
+  payment: paymentRouter,
   getInfiniteProducts: publicProcedure
     .input(
       z.object({

@@ -1,6 +1,8 @@
 "use client";
 import { buttonVariants } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import CartItem from "./CartItem";
 import {
   Sheet,
   SheetContent,
@@ -9,6 +11,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { useCart } from "@/hooks/use-cart";
 import { formatPrice } from "@/lib/utils";
 import { ShoppingCart } from "lucide-react";
 import Image from "next/image";
@@ -16,7 +19,11 @@ import Link from "next/link";
 import React from "react";
 
 const Cart = () => {
-  const itemCount = 0;
+  const { items } = useCart();
+  const itemCount = items.length;
+  const CartTotal = items.reduce((acc, { product }) => {
+    return acc + product.price;
+  }, 0);
   const fee = 1;
 
   return (
@@ -36,7 +43,14 @@ const Cart = () => {
         </SheetHeader>
         {itemCount > 0 ? (
           <>
-            <div className="flex w-full flex-col pr-6 ">cart items</div>
+            <div className="flex w-full flex-col pr-6 ">
+              <ScrollArea>
+                {items.map(({ product }) => (
+                  <CartItem key={product.id} product={product} />
+                ))}
+              </ScrollArea>
+              cart items
+            </div>
             <div className="space-y-4 pr-6">
               <Separator />
               <div className="space-y-1.5 text-sm">
@@ -50,13 +64,13 @@ const Cart = () => {
                 </div>
                 <div className="flex">
                   <span className="flex-1">Total</span>
-                  <span>{formatPrice(fee)}</span>
+                  <span>{formatPrice(CartTotal + fee)}</span>
                 </div>
               </div>
               <SheetFooter>
                 <SheetTrigger asChild>
                   <Link
-                    href="#"
+                    href="/cart"
                     className={buttonVariants({
                       className: "w-full",
                     })}
