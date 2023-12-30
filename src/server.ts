@@ -59,17 +59,6 @@ const start = async () => {
     return;
   }
 
-  if (process.env.NEXT_BUILD) {
-    app.listen(PORT, async () => {
-      payload.logger.info("Next.js is building for production");
-      // @ts-expect-error
-      await nextBuild(path.join(__dirname, "../"));
-      process.exit();
-    });
-
-    return;
-  }
-
   const cartRouter = express.Router();
 
   cartRouter.use(payload.authenticate);
@@ -83,6 +72,17 @@ const start = async () => {
 
     return nextApp.render(req, res, "/cart", query);
   });
+
+  if (process.env.NEXT_BUILD) {
+    app.listen(PORT, async () => {
+      payload.logger.info("Next.js is building for production");
+      // @ts-expect-error
+      await nextBuild(path.join(__dirname, "../"));
+      process.exit();
+    });
+
+    return;
+  }
 
   app.use(
     "/api/trpc",
