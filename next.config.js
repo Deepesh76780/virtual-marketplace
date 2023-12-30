@@ -8,7 +8,7 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "main--ornate-hummingbird-4f71c0.netlify.app",
+        hostname: "virtual-marketplace.vercel.app",
       },
     ],
   },
